@@ -1,33 +1,36 @@
-https://moch.raydzan-inifootballshop.pbp.cs.ui.ac.id
+1. Jelaskan mengapa kita memerlukan data delivery dalam pengimplementasian sebuah platform?
 
-1. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
+## jawaban: agar dapat bisa diambil oleh orang lain serta juga memungkinkan integrasi menggunakan API
 
-jawaban : Saat mengerjakan saya juga sambil memahami dan tidak hanya sekedar mengikuti tutorial
+2. Menurutmu, mana yang lebih baik antara XML dan JSON? Mengapa JSON lebih populer dibandingkan XML?
 
-2. Buatlah bagan yang berisi request client ke web aplikasi berbasis Django beserta responnya dan jelaskan pada bagan tersebut kaitan antara urls.py, views.py, models.py, dan berkas html.
+## jawaban: menurut saya lebih bagus JSON, karena JSON lebih praktis dibandingkan XML, serta juga ringan dan JSON udah memakai ekosistem API yang modern seperti GraphQL yang biasanya orang2 pakai JSON
 
-jawaban: 
+3. Jelaskan fungsi dari method is_valid() pada form Django dan mengapa kita membutuhkan method tersebut?
 
-browser -> urls.py -> views.py -> models.py -> templates html -> response
+## jawaban: is_valid() itu menjalankan validasi berdasarkan tipe field, kauak wajob atau tidaknya, seberapa panjang dan format2nya. dan kenapa perlu? ya tentu aja untuk security, membuang input yang gak valid agar konsistensi data juga. saat masuk Data Base udah sesuai aturan
 
-pada browser ada http request lalu pada urls mencocokan pola url dan meneruskan ke view
-lalu pada view melanjutkan ke modelspy dengan eksekusi query ke DB
-setelah itu render context pada template dan hasilnya response html kembali ke browser
+4. Mengapa kita membutuhkan csrf_token saat membuat form di Django? Apa yang dapat terjadi jika kita tidak menambahkan csrf_token pada form Django? Bagaimana hal tersebut dapat dimanfaatkan oleh penyerang?
 
-3. Jelaskan peran settings.py dalam proyek Django!
+## jawaban:karena untuk mencegah serangan CSRF yang dimana serangan ini menyuruh browser korban mengirim form ke situs lain tanpa sepengetahuan dia, tanpa token sang penyerang bisa aja membuat halaman form tersembunyi yang auto submit ke endpoint. bisa aja mereka juga ubah data atau ubah profil. penyerang juga memanfaatkan sifat browser yang mengirimkan cookie
 
-jawavab : settings.py adalah pusat konfigurasi proyek
+5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
 
-4. Bagaimana cara kerja migrasi database di Django?
+## jawaban: 1. saya membuat model terlebih dahulu yang sesuai dengan tugas dan saya menambahkan kategori dan juga image untuk thumbnail. 
+## 2. setelah itu saya membuat form untuk menampilkan field yang sudah dibuat
+## 3. setelah itu nambahin beberapa fungsi kedalam views seperti show_product dan create_product
+## 4. saya juga menambahkan untuk melihat XML dan JSON
+## 5. pada template juga saya membuat create_product dan juga product_detail
 
-jawaban : python manage.py makemigrations untuk membaca perubahan yang terjadi dan lalu
-python manage.py migrate untuk migrating
+6. Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan?
 
-5. Menurut Anda, dari semua framework yang ada, mengapa framework Django dijadikan permulaan pembelajaran pengembangan perangkat lunak?
-
-jawaban : testing dan migrasi yang terintgrasi untuk mahasiswa
+## jawaban: dari aku sendiri udah aman banget dan seru tutorialnya sambil dipelajari
 
 
-6. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya?
 
-jawaban :  aman sih gak ada
+
+## screenshoot
+
+![Screenshot JSON](docs_screenshoot/postman_json.png)
+
+![Screenshot XML](docs_screenshoot/postman_xml.png)

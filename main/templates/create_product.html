@@ -1,0 +1,7 @@
+<h1>Tambah Produk</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Simpan</button>
+</form>
+<a href="{% url 'main:show_main' %}">Kembali</a>

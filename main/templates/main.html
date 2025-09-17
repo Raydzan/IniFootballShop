@@ -1,8 +1,26 @@
-<h1>Football News</h1>
+<h1>Ini Football Shop</h1>
 
 <h5>App: </h5>
 <p>{{ app }}</p>
-<h5>Name: </h5>
 <p>{{ name }}<p>
-<h5>Kelas: </h5>
 <p>{{ kelas }}</p>
+
+<hr>
+<h2>Daftar Produk</h2>
+<a href="{% url 'main:create_product' %}">Tambah Produk</a>
+
+<ul>
+  {% for p in items %}
+    <li>
+      <strong>{{ p.name }}</strong> — Rp {{ p.price }}
+      <br>
+      {% if p.thumbnail %}
+        <img src="{{ p.thumbnail }}" alt="thumbnail {{ p.name }}" style="max-width:150px;">
+      {% endif %}
+      <br>
+      <a href="{% url 'main:show_product' p.id %}">Detail</a>
+    </li>
+  {% empty %}
+    <li>Belum ada produk.</li>
+  {% endfor %}
+</ul>
