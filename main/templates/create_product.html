@@ -1,3 +1,10 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Tambah Produk</title>
+{% endblock meta %}
+
+{% block content %}
 <h1>Tambah Produk</h1>
 <form method="post">
   {% csrf_token %}
@@ -5,3 +12,4 @@
   <button type="submit">Simpan</button>
 </form>
 <a href="{% url 'main:show_main' %}">Kembali</a>
+{% endblock content %}

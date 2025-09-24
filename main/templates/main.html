@@ -1,26 +1,41 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Football Shop</title>
+{% endblock meta %}
+
+{% block content %}
 <h1>Ini Football Shop</h1>
 
-<h5>App: </h5>
+<h5>App:</h5>
 <p>{{ app }}</p>
-<p>{{ name }}<p>
+<h5>Nama:</h5>
+<p>{{ name }}</p>
+<h5>Kelas:</h5>
 <p>{{ kelas }}</p>
 
-<hr>
-<h2>Daftar Produk</h2>
-<a href="{% url 'main:create_product' %}">Tambah Produk</a>
+<a href="{% url 'main:create_product' %}">
+  <button>+ Tambah Produk</button>
+</a>
+<a href="{% url 'main:logout' %}">
+  <button>Logout</button>
+</a>
 
+<h5>Sesi terakhir login: {{ last_login }}</h5>
+<hr>
+
+<h2>Daftar produk</h2>
 <ul>
   {% for p in items %}
     <li>
       <strong>{{ p.name }}</strong> — Rp {{ p.price }}
-      <br>
-      {% if p.thumbnail %}
-        <img src="{{ p.thumbnail }}" alt="thumbnail {{ p.name }}" style="max-width:150px;">
-      {% endif %}
-      <br>
-      <a href="{% url 'main:show_product' p.id %}">Detail</a>
+      {% if p.image_url %}<br>
+        <img src="{{ p.image_url }}" alt="gambar {{ p.name }}" style="max-width:150px;">
+      {% endif %}<br>
+      <a href="{% url 'main:show_product' p.id %}"><button>Detail</button></a>
     </li>
   {% empty %}
     <li>Belum ada produk.</li>
   {% endfor %}
 </ul>
+{% endblock content %}

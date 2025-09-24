@@ -1,8 +1,25 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>{{ product.name }}</title>
+{% endblock meta %}
+
+{% block content %}
+<p><a href="{% url 'main:show_main' %}"><button>← Kembali ke Daftar</button></a></p>
+
 <h1>{{ product.name }}</h1>
-{% if product.thumbnail %}
-  <img src="{{ product.thumbnail }}" alt="thumbnail {{ product.name }}" style="max-width:300px;">
-{% endif %}
-<p><b>Harga:</b> Rp {{ product.price }}</p>
 <p><b>Kategori:</b> {{ product.get_category_display }}</p>
+<p><b>Harga:</b> Rp {{ product.price }}</p>
+
+{% if product.image_url %}
+  <img src="{{ product.image_url }}" alt="gambar {{ product.name }}" style="max-width:300px;"><br><br>
+{% endif %}
+
 <p>{{ product.description }}</p>
-<a href="{% url 'main:show_main' %}">Kembali</a>
+
+{% if product.user %}
+  <p><i>Owner:</i> {{ product.user.username }}</p>
+{% else %}
+  <p><i>Owner:</i> Anonymous</p>
+{% endif %}
+{% endblock content %}
