@@ -5,28 +5,20 @@
 {% endblock meta %}
 
 {% block content %}
-
-<div>
-  <h1>Register</h1>
-
-  <form method="POST">
-    {% csrf_token %}
-    <table>
-      {{ form.as_table }}
-      <tr>
-        <td></td>
-        <td><input type="submit" name="submit" value="Daftar" /></td>
-      </tr>
-    </table>
-  </form>
-
-  {% if messages %}
-  <ul>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %}
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Daftar Akun</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="error">{{ field.errors|striptags }}</div>{% endif %}
+      {% endfor %}
+      <button type="submit">Register</button>
+    </form>
+    <div class="muted">Sudah punya akun? <a href="{% url 'main:login' %}">Login</a></div>
+  </div>
 </div>
-
 {% endblock content %}

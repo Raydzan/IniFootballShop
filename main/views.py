@@ -9,32 +9,75 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from .models import Product
 
 @login_required(login_url='main:login')
 def show_main(request):
+    f = request.GET.get("filter", "all")
+    cat = request.GET.get("category", "").strip()
+
+    qs = Product.objects.all()
+    if f == "yours":
+        qs = qs.filter(user=request.user)
+    if cat:
+        qs = qs.filter(category=cat)
+    
+    items = Product.objects.all().order_by("-created_at")
+
     context = {
-        'app' : 'inifootballshop',
-        'name': 'Moch Raydzan',
-        'kelas': 'D',
-        "items": Product.objects.all().order_by("-id"),
-        'username': request.user.username,
-        'last_login': request.COOKIES.get('last_login', 'Never')
+        "items": qs.order_by("-created_at"),
+        "active_filter": f,
+        "active_category": cat,
+        'last_login': request.COOKIES.get('last_login', 'Never'),
     }
 
     return render(request, "main.html", context)
 
+# product function
+
+@login_required(login_url='main:login')
 def create_product(request):
     form = ProductForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        obj = form.save(commit=False)
+        obj.user = request.user
+        obj.save()
         return redirect("main:show_main")
     return render(request, "create_product.html", {"form": form})
 
+@login_required(login_url='main:login')
 def show_product(request, id):
     product = get_object_or_404(Product, pk=id)
     return render(request, "product_detail.html", {"product": product})
 
-# # Form register
+def update_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    if product.user != request.user:
+        messages.error(request, "bukan pemilik")
+        return redirect("main:show_main")
+
+    form = ProductForm(request.POST or None, instance=product)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Produk berhasil diperbarui.")
+        return redirect("main:show_main")
+    return render(request, "update_product.html", {"form": form, "product": product})
+
+@login_required(login_url='main:login')
+def delete_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    if product.user != request.user:
+        messages.error(request, "bukan pemilik")
+        return redirect("main:show_main")
+
+    if request.method == "POST":
+        product.delete()
+        messages.success(request, "Produk telah dihapus.")
+        return redirect("main:show_main")
+    # Halaman konfirmasi
+    return render(request, "delete_product.html", {"product": product})
+
+# Form register
 
 def register(request):
     form = UserCreationForm()
@@ -68,7 +111,7 @@ def logout_user(request):
     response.delete_cookie('last_login')
     return response
 
-    # # not Main function 
+    # not Main function 
 
 def show_xml(request):
     data = Product.objects.all()

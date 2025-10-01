@@ -18,6 +18,7 @@ class Product(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='jersey')
     image_url = models.URLField(blank=True, null=True)
     is_featured = models.BooleanField(default=False)
+    stock = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 

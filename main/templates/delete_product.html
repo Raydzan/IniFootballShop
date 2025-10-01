@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 style="margin:12px 0;">Hapus Produk</h1>
+  <div class="empty">
+    <p>Yakin menghapus: <strong>{{ product.name }}</strong>?</p>
+    <form method="post" style="margin-top:10px;display:flex;gap:8px;justify-content:center;">
+      {% csrf_token %}
+      <button class="btn btn--danger" type="submit">Ya, hapus</button>
+      <a class="btn" href="{% url 'main:show_main' %}">Batal</a>
+    </form>
+  </div>
+{% endblock %}

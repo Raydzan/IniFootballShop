@@ -1,12 +1,87 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {% block meta %}{% endblock meta %}
-</head>
-<body>
-    {% block content %}{% endblock content %}
-</body>
+    <head>
+        <link rel="stylesheet" href="{% static 'css/global.css' %}">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {% block meta %}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {% endblock meta %}
+    </head>
+    <body>
+        <header class="nav">
+            <div class="nav__inner">
+                <!-- kiri: burger + brand -->
+                <div style="display:flex;align-items:center;gap:10px">
+                    <button class="nav__toggle" type="button" aria-label="Open menu" onclick="openDrawer(true)">☰</button>
+                    <a href="{% url 'main:show_main' %}" class="brand">IniFootballShop</a>
+                </div>
+                
+                <!-- kanan: identitas PEMBUAT + logout merah -->
+                <div class="nav__right">
+                    <div class="nav__user">
+                        <div class="nav__name">{{ navbar_name }}</div>
+                        <div class="nav__meta">{{ navbar_npm }} · {{ navbar_kelas }}</div>
+                    </div>
+                    {% if request.user.is_authenticated %}
+                    <a href="{% url 'main:logout' %}" class="nav__logout">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+        
+        <!-- Drawer samping kiri -->
+        <aside id="drawer" class="drawer">
+            <div class="drawer__head">
+                <strong>Menu</strong>
+                <div style="flex:1"></div>
+                <button class="btn" onclick="openDrawer(false)">Tutup</button>
+            </div>
+            
+            <div class="drawer__body">
+                <a href="?filter={{ active_filter|default:'all' }}"
+                class="{% if not active_category %}active{% endif %}">
+                Semua Kategori
+            </a>
+            {% for key, label in product_categories %}
+                <a href="?filter={{ active_filter|default:'all' }}&category={{ key }}"
+                class="{% if active_category == key %}active{% endif %}">
+                {{ label }}
+            </a>
+            {% endfor %}
+        </div>
+        
+            
+            <div class="drawer__foot">
+                <div style="display:flex;flex-direction:column;line-height:1.1">
+                    <strong>{{ navbar_name }}</strong>
+                    <span class="muted">{{ navbar_npm }} · {{ navbar_kelas }}</span>
+                </div>
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'main:logout' %}" class="nav__logout">Logout</a>
+                {% endif %}
+            </div>
+        </aside>
+        <div id="drawerOverlay" class="drawer-overlay" onclick="openDrawer(false)"></div>
+            
+        {% block content %}{% endblock content %}
+        <script>
+            function openDrawer(open){
+                const d = document.getElementById('drawer');
+                const o = document.getElementById('drawerOverlay');
+                if(!d || !o) return;
+                d.classList.toggle('is-open', open);
+                o.classList.toggle('is-show', open);
+            }
+            function toggleGrid(){
+                const grid = document.querySelector('.grid');
+                const btn = document.getElementById('gridToggle');
+                if(!grid || !btn) return;
+                const isSix = grid.classList.toggle('grid--6');
+                btn.setAttribute('aria-pressed', isSix ? 'true' : 'false');
+                btn.title = isSix ? 'Tampilkan Grid 3' : 'Tampilkan Grid 6';
+            }
+        </script>
+    </body>
 </html>

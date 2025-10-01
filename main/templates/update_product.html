@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Produk</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <label>{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<div class="error">{{ field.errors|striptags }}</div>{% endif %}
+  {% endfor %}
+  <button type="submit">Simpan</button>
+  <a href="{% url 'main:show_main' %}">Batal</a>
+</form>
+{% endblock %}

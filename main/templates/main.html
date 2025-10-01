@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
 
 {% block meta %}
 <title>Football Shop</title>
@@ -7,35 +9,64 @@
 {% block content %}
 <h1>Ini Football Shop</h1>
 
-<h5>App:</h5>
-<p>{{ app }}</p>
-<h5>Nama:</h5>
-<p>{{ name }}</p>
-<h5>Kelas:</h5>
-<p>{{ kelas }}</p>
+<div class="panel">
+  <div class="stack">
+    <div class="account-name">{{ request.user.username }}</div>
+    <div class="muted">Sesi terakhir login: {{ last_login }}</div>
+  </div>
+  <div class="toolbar">
+    <a href="{% url 'main:create_product' %}" class="btn">+ Tambah Produk</a>
+  </div>
+</div>
 
-<a href="{% url 'main:create_product' %}">
-  <button>+ Tambah Produk</button>
-</a>
-<a href="{% url 'main:logout' %}">
-  <button>Logout</button>
-</a>
+<<h2>Daftar produk</h2>
 
-<h5>Sesi terakhir login: {{ last_login }}</h5>
-<hr>
+<div class="filters-bar">
+  <div class="filters">
+    <a href="?filter=all{% if active_category %}&category={{ active_category }}{% endif %}"
+       class="btn {% if active_filter == 'all' %}btn--active{% endif %}">All</a>
+    <a href="?filter=yours{% if active_category %}&category={{ active_category }}{% endif %}"
+       class="btn {% if active_filter == 'yours' %}btn--active{% endif %}">Yours</a>
+  </div>
+  <button id="gridToggle" class="btn btn-icon" type="button"
+          onclick="toggleGrid()" title="Tampilkan Grid 6" aria-pressed="false">▦</button>
+</div>
 
-<h2>Daftar produk</h2>
-<ul>
-  {% for p in items %}
-    <li>
-      <strong>{{ p.name }}</strong> — Rp {{ p.price }}
-      {% if p.image_url %}<br>
-        <img src="{{ p.image_url }}" alt="gambar {{ p.name }}" style="max-width:150px;">
-      {% endif %}<br>
-      <a href="{% url 'main:show_product' p.id %}"><button>Detail</button></a>
-    </li>
-  {% empty %}
-    <li>Belum ada produk.</li>
-  {% endfor %}
-</ul>
+<div class="products-box">
+  {% if items|length %}
+    <div class="grid">
+      {% for p in items %}
+        <article class="card">
+          <a href="{% url 'main:show_product' p.id %}" class="card__thumb">
+            {% if p.image_url %}<img src="{{ p.image_url }}" alt="{{ p.name }}">{% endif %}
+          </a>
+          <div class="card__body">
+            <h3 class="card__title">{{ p.name }}</h3>
+            <div class="card__meta">Harga: Rp {{ p.price|floatformat:0|intcomma }}</div>
+            <div class="card__meta">Stok: {{ p.stock }}</div>
+            <div class="card__meta">Kategori: {{ p.category }}</div>
+          </div>
+          <div class="card__actions">
+            <a class="btn" href="{% url 'main:show_product' p.id %}">Detail</a>
+            {% if p.user == request.user %}
+              <a class="btn btn--warn" href="{% url 'main:update_product' p.id %}">Edit</a>
+              <form method="post" action="{% url 'main:delete_product' p.id %}">
+                {% csrf_token %}
+                <button class="btn btn--danger" type="submit"
+                        onclick="return confirm('Hapus {{ p.name }}?')">Delete</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty empty--center">
+      <img src="{% static 'image/empty-box.png' %}" alt="Kosong">
+      <p>Belum ada produk.</p>
+      <a class="btn" href="{% url 'main:create_product' %}">Tambah sekarang</a>
+    </div>
+  {% endif %}
+</div>z
+
 {% endblock content %}

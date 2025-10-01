@@ -5,28 +5,20 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="login">
-  <h1>Login</h1>
-
-  <form method="POST" action="">
-    {% csrf_token %}
-    <table>
-      {{ form.as_table }}
-      <tr>
-        <td></td>
-        <td><input class="btn login_btn" type="submit" value="Login" /></td>
-      </tr>
-    </table>
-  </form>
-
-  {% if messages %}
-  <ul>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %} Don't have an account yet?
-  <a href="{% url 'main:register' %}">Register Now</a>
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Login ke Football Shop</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="error">{{ field.errors|striptags }}</div>{% endif %}
+      {% endfor %}
+      <button type="submit">Login</button>
+    </form>
+    <div class="muted">Belum punya akun? <a href="{% url 'main:register' %}">Daftar</a></div>
+  </div>
 </div>
-
 {% endblock content %}
