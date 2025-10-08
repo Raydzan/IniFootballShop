@@ -21,4 +21,63 @@
     <div class="muted">Belum punya akun? <a href="{% url 'main:register' %}">Daftar</a></div>
   </div>
 </div>
+
+<script>
+(function(){
+  const form = document.querySelector('form');
+
+  function csrfToken(){
+    const m = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[2]) : '';
+  }
+  
+  function firstError(errors){
+    if(!errors) return null;
+    const pick = k => Array.isArray(errors[k]) ? errors[k][0] :
+                      (errors[k] ? String(errors[k]) : null);
+    return pick('__all__') || pick('non_field_errors') || pick('username') || pick('password');
+  }
+
+  const toastFn = (msg, ms, variant) =>
+    (window.showToast ? window.showToast(msg, ms, variant) : alert(msg));
+
+  form?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    try{
+      const resp = await fetch(form.action, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'},
+        body: new FormData(form)
+      });
+      if (resp.ok){
+        localStorage.setItem('toast', 'Login berhasil');
+        window.location.href = "{% url 'main:show_main' %}";
+        return;
+      }
+      if (resp.status === 400){
+        const data = await resp.json().catch(()=> ({}));
+        const msg = firstError(data.errors) || 'Login gagal. Periksa kembali data Anda.';
+        toastFn(msg, 3200, 'error');
+        let box = document.getElementById('form-errors');
+        if(!box){
+          box = document.createElement('div');
+          box.id = 'form-errors';
+          box.className = 'error';
+          box.style.margin = '8px 0';
+          form.prepend(box);
+        }
+        const arr = data?.errors?.__all__ || [];
+        box.innerHTML = Array.isArray(arr) ? arr.map(String).join('<br>') : msg;
+        return;
+      }
+      toastFn('Terjadi kesalahan saat login', 3000, 'error');
+    }catch(_){
+      toastFn('Jaringan bermasalah', 3000, 'error');
+    }
+  });
+})();
+</script>
+
+
+
 {% endblock content %}

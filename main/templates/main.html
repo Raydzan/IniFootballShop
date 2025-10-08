@@ -19,7 +19,7 @@
   </div>
 </div>
 
-<<h2>Daftar produk</h2>
+<h2>Daftar produk</h2>
 
 <div class="filters-bar">
   <div class="filters">
@@ -28,8 +28,12 @@
     <a href="?filter=yours{% if active_category %}&category={{ active_category }}{% endif %}"
        class="btn {% if active_filter == 'yours' %}btn--active{% endif %}">Yours</a>
   </div>
-  <button id="gridToggle" class="btn btn-icon" type="button"
-          onclick="toggleGrid()" title="Tampilkan Grid 6" aria-pressed="false">▦</button>
+
+  <div class="filters-actions">
+    <button id="gridToggle" class="btn btn-icon" type="button"
+            onclick="toggleGrid()" title="Tampilkan Grid 6" aria-pressed="false">▦</button>
+    <button id="btn-refresh" class="btn" type="button" title="Muat ulang daftar">Refresh</button>
+  </div>
 </div>
 
 <div class="products-box">
@@ -67,6 +71,196 @@
       <a class="btn" href="{% url 'main:create_product' %}">Tambah sekarang</a>
     </div>
   {% endif %}
-</div>z
+</div>
+
+<script>
+(function(){
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+
+  function init(){
+    const $ = (s, el=document)=>el.querySelector(s);
+
+    const box = $('.products-box');
+    const stLoading = document.getElementById('state-loading');
+    const stError   = document.getElementById('state-error');
+    const stEmpty   = document.getElementById('state-empty');
+    const btnRefresh= document.getElementById('btn-refresh');
+    const modalForm = document.getElementById('modal-form');
+    const modalFormContent = document.getElementById('modal-form-content');
+    const modalConfirm = document.getElementById('modal-confirm');
+    const confirmYes = document.getElementById('confirm-yes');
+    const confirmCancel = document.getElementById('confirm-cancel');
+    const toast = document.getElementById('toast');
+
+    function csrfToken(){
+      const m = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[2]) : '';
+    }
+    function showToast(msg, ms=2200){
+      if (window.showToast) return window.showToast(msg, ms);
+      if(!toast) return;
+      toast.textContent = msg;
+      toast.hidden = false;
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=> toast.hidden = true, ms);
+    }
+    function setState({loading=false,error=false,empty=false}){
+      if(stLoading) stLoading.hidden = !loading;
+      if(stError)   stError.hidden   = !error;
+      if(stEmpty)   stEmpty.hidden   = !empty;
+    }
+
+    function sterilizeDeleteButtons(){
+      document.querySelectorAll('form[action*="/delete/"] button[type="submit"]')
+        .forEach(btn => btn.removeAttribute('onclick'));
+    }
+    sterilizeDeleteButtons();
+    async function refreshGrid(){
+      if(!box) return;
+      try{
+        setState({loading:true});
+        const res = await fetch(window.location.href, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+        if(!res.ok) throw new Error('bad');
+        const html = await res.text();
+        const dom = new DOMParser().parseFromString(html, 'text/html');
+        const newBox = dom.querySelector('.products-box');
+        if(newBox){
+          box.innerHTML = newBox.innerHTML;
+          sterilizeDeleteButtons();
+          const grid = box.querySelector('.grid');
+          const hasItems = !!(grid && grid.children.length);
+          setState({empty: !hasItems});
+        }
+        setState({});
+      }catch(e){
+        setState({error:true});
+      }
+    }
+
+    async function openFormModal(url){
+      try{
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'same-origin'
+        });
+        if (!res.ok) {
+          window.location.href = url;
+          return;
+        }
+
+        const html = await res.text();
+        if (!modalForm || !modalFormContent || typeof modalForm.showModal !== 'function') {
+          window.location.href = url;
+          return;
+        }
+        const m = html.match(/<form[\s\S]*?<\/form>/i);
+        modalFormContent.innerHTML = m ? m[0] : html;
+        modalForm.showModal();
+        document.getElementById('modal-form-cancel')
+          ?.addEventListener('click', () => modalForm.close(), { once: true });
+
+        const innerForm = modalFormContent.querySelector('form');
+        if (innerForm){
+          innerForm.addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            const action = innerForm.getAttribute('action') || url;
+            const method = (innerForm.getAttribute('method') || 'post').toUpperCase();
+            const fd = new FormData(innerForm);
+            try{
+              const resp = await fetch(action, {
+                method,
+                headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                body: fd
+              });
+              if (resp.status === 200 || resp.status === 201){
+                modalForm.close();
+                await refreshGrid();
+                showToast(action.includes('/add/') ? 'Produk ditambahkan.' : 'Produk diperbarui.');
+              } else if (resp.status === 400){
+                const data = await resp.json().catch(()=> ({}));
+                showToast('Periksa kembali input.', 2500, 'error');
+              } else if (resp.status === 403){
+                showToast('Tidak punya akses.', 2500, 'error');
+              } else {
+                showToast('Gagal menyimpan.', 2500, 'error');
+              }
+            }catch{
+              showToast('Jaringan bermasalah.', 2500, 'error');
+            }
+          }, { once:true });
+        }
+      }catch{
+        showToast('Gagal membuka formulir.', 2500, 'error');
+      }
+    }
+
+
+    // DELETE modal konfirmasi
+    let deleteAction = null;
+    document.addEventListener('submit', (e)=>{
+      const form = e.target.closest('form[action*="/delete/"]');
+      if(!form) return;
+      e.preventDefault();
+      deleteAction = form.getAttribute('action');
+      if (!modalConfirm || !('showModal' in HTMLDialogElement.prototype)) {
+        form.submit(); return;
+      }
+      modalConfirm.showModal();
+    });
+
+    confirmCancel?.addEventListener('click', ()=> modalConfirm.close());
+    confirmYes?.addEventListener('click', async ()=>{
+      if(!deleteAction) return modalConfirm.close();
+      try{
+        const resp = await fetch(deleteAction, {
+          method: 'POST',
+          headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}
+        });
+        if(resp.ok){
+          await refreshGrid();
+          (window.showToast || showToast)('Produk dihapus.', 2200, 'error');
+        }else if(resp.status === 403){
+          showToast('Tidak punya akses.', 2500);
+        }else{
+          showToast('Gagal menghapus.', 2500);
+        }
+      }catch(e){
+        showToast('Jaringan bermasalah.', 2500);
+      }finally{
+        deleteAction = null;
+        modalConfirm.close();
+      }
+    });
+
+    // ADD (buka modal)
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href$="/add/"], a[href*="/add/?"]');
+      if (!a) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (!modalForm || typeof modalForm.showModal !== 'function') return;
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      openFormModal(href).catch(() => { window.location.href = href; });
+    });
+
+    // EDIT (buka modal)
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href*="/edit/"]');
+      if (!a) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (!modalForm || typeof modalForm.showModal !== 'function') return;
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      openFormModal(href).catch(() => { window.location.href = href; });
+    });
+
+    btnRefresh?.addEventListener('click', refreshGrid);
+  }
+})();
+</script>
 
 {% endblock content %}

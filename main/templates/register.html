@@ -14,11 +14,73 @@
       {% for field in form %}
         <label>{{ field.label }}</label>
         {{ field }}
-        {% if field.errors %}<div class="error">{{ field.errors|striptags }}</div>{% endif %}
+        {% if field.name == 'password2' and field.help_text %}
+          <div class="muted help">{{ field.help_text|safe }}</div>
+        {% endif %}
+        <div class="error" data-error-for="{{ field.name }}"></div>
       {% endfor %}
       <button type="submit">Register</button>
     </form>
     <div class="muted">Sudah punya akun? <a href="{% url 'main:login' %}">Login</a></div>
   </div>
 </div>
+
+<script>
+(function(){
+  const form = document.querySelector('form');
+
+  function csrfToken(){
+    const m = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[2]) : '';
+  }
+  function clearFieldErrors(){
+    document.querySelectorAll('.error[data-error-for]').forEach(el => el.innerHTML = '');
+  }
+  function setFieldErrors(errors){
+    Object.entries(errors || {}).forEach(([name, msgs])=>{
+      const el = document.querySelector(`.error[data-error-for="${name}"]`);
+      if(el){
+        const arr = Array.isArray(msgs) ? msgs : [String(msgs)];
+        el.innerHTML = arr.map(m => `<div>${m}</div>`).join('');
+      }
+    });
+  }
+  function pickFirstError(errors){
+    if(!errors) return null;
+    const first = (k)=> Array.isArray(errors[k]) ? errors[k][0] :
+                    (errors[k] ? String(errors[k]) : null);
+    return first('password2') || first('password1') ||
+           first('username') || first('__all__') || first('non_field_errors');
+  }
+
+  form?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    clearFieldErrors();
+    try{
+      const resp = await fetch(form.action, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'},
+        body: new FormData(form)
+      });
+      if (resp.ok || resp.status === 201) {
+        localStorage.setItem('toast','Registrasi berhasil');
+        window.location.href = "{% url 'main:show_main' %}";
+        return;
+      }
+      if (resp.status === 400) {
+        const data = await resp.json().catch(()=> ({}));
+        setFieldErrors(data.errors || {});
+        const msg = pickFirstError(data.errors) || 'Registrasi gagal. Periksa input.';
+        (window.showToast || function(m){ alert(m); })(msg, 3600, 'error');
+        return;
+      }
+      (window.showToast || function(m){ alert(m); })('Terjadi kesalahan saat registrasi', 3200, 'error');
+    }catch(_){
+      (window.showToast || function(m){ alert(m); })('Jaringan bermasalah', 3200, 'error');
+    }
+  });
+})();
+</script>
+
+
 {% endblock content %}

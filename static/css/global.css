@@ -372,6 +372,10 @@ h2 {
   border-top: 1px solid var(--line);
 }
 
+.card__actions form {
+  display: inline;
+}
+
 .btn {
   display: inline-flex;
   appearance: none;
@@ -382,6 +386,9 @@ h2 {
   color: var(--ink);
   cursor: pointer;
   transition: all 0.12s ease;
+  font: inherit;
+  line-height: 1;
+  font-weight: 500;
 }
 
 .btn:hover {
@@ -562,8 +569,16 @@ h2 {
 .filters-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+   gap: 12px;
   margin: 8px 24px 12px;
+}
+
+.filters-actions{
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Pembungkus grid */
@@ -575,4 +590,40 @@ h2 {
   box-shadow: var(--shadow);
   padding: 24px;
   margin-top:8px;
+}
+
+/* Modal dialog (form dan confirm) */
+dialog, dialog[open] {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+dialog[open] {
+  display: grid !important;
+  place-items: center !important;
+}
+dialog::backdrop {
+  background: rgba(0,0,0,.42) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.dialog-card{
+  width: clamp(320px, 92vw, 460px);
+  margin: 0;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.dialog-actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
 }

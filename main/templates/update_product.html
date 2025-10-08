@@ -1,15 +1,78 @@
 {% extends "base.html" %}
+
+{% block meta %}<title>Edit Produk</title>{% endblock meta %}
+
 {% block content %}
 <h1>Edit Produk</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  {% for field in form %}
-    <label>{{ field.label }}</label>
-    {{ field }}
-    {% if field.errors %}<div class="error">{{ field.errors|striptags }}</div>{% endif %}
-  {% endfor %}
-  <button type="submit">Simpan</button>
-  <a href="{% url 'main:show_main' %}">Batal</a>
-</form>
+
+<div class="form-panel">
+  <form method="post" action="">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {# placeholder error per-field (untuk AJAX) #}
+      <div class="error" data-error-for="{{ field.name }}"></div>
+    {% endfor %}
+    <div class="actions">
+      <button class="btn" type="submit">Simpan</button>
+      <a class="btn" href="{% url 'main:show_main' %}">Batal</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  const form = document.querySelector('.form-panel form');
+
+  function csrfToken(){
+    const m = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[2]) : '';
+  }
+  function clearFieldErrors(){
+    document.querySelectorAll('.error[data-error-for]').forEach(el => el.innerHTML = '');
+  }
+  function setFieldErrors(errors){
+    if(!errors) return;
+    Object.entries(errors).forEach(([name, msgs])=>{
+      const el = document.querySelector('.error[data-error-for="'+name+'"]');
+      if(el){
+        const list = Array.isArray(msgs) ? msgs : [String(msgs)];
+        el.innerHTML = list.map(m => `<div>${m}</div>`).join('');
+      }
+    });
+  }
+  const toast = (msg, ms=2800, v='info') =>
+    (window.showToast ? window.showToast(msg, ms, v) : alert(msg));
+  form?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    clearFieldErrors();
+    try{
+      const resp = await fetch(form.action || window.location.href, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'},
+        body: new FormData(form)
+      });
+      if(resp.ok){
+        localStorage.setItem('toast','Produk diperbarui.');
+        window.location.href = "{% url 'main:show_main' %}";
+        return;
+      }
+      if(resp.status === 400){
+        const data = await resp.json().catch(()=> ({}));
+        setFieldErrors(data.errors || {});
+        toast('Periksa kembali input.', 3200, 'error');
+        return;
+      }
+      if(resp.status === 403){
+        toast('Tidak punya akses.', 3200, 'error'); return;
+      }
+      toast('Gagal menyimpan.', 3200, 'error');
+    }catch{
+      toast('Jaringan bermasalah.', 3200, 'error');
+    }
+  });
+})();
+</script>
 {% endblock %}

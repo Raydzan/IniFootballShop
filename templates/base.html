@@ -83,5 +83,51 @@
                 btn.title = isSix ? 'Tampilkan Grid 3' : 'Tampilkan Grid 6';
             }
         </script>
+        {% include "modal.html" %}
+        {% include "toast.html" %}
+        <script>
+            (function(){
+                const t = document.getElementById('toast');
+                const msg = localStorage.getItem('toast');
+                if(t && msg){
+                    t.textContent = msg;
+                    t.hidden = false;
+                    setTimeout(()=> t.hidden = true, 2200);
+                    localStorage.removeItem('toast');
+                }
+            })();
+        </script>
+        <script>
+            document.addEventListener('click', function(e){
+                const a = e.target.closest('a[href$="/logout/"]');
+                if(!a) return;
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                localStorage.setItem('toast','Logout berhasil');
+            });
+        </script>
+        <script>
+            window.showToast = function (msg, ms = 2800, variant = 'info') {
+                const t = document.getElementById('toast');
+                if (!t) return;
+                const oldBg = t.style.background, oldColor = t.style.color;
+                if (variant === 'error') {
+                    t.style.background = 'var(--danger)';
+                    t.style.color = '#fff';
+                } else {
+                    t.style.background = 'var(--card)'; 
+                    t.style.color = 'var(--ink)';
+                }
+                
+                t.textContent = msg;
+                t.hidden = false;
+                
+                clearTimeout(window.__toastTimer);
+                window.__toastTimer = setTimeout(() => {
+                    t.hidden = true;
+                    t.style.background = oldBg || 'var(--card)';
+                    t.style.color = oldColor || 'var(--ink)';
+                }, ms);
+            };
+        </script>
     </body>
 </html>
