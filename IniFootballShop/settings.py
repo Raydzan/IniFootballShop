@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+l%7bmwc3529zuigsu^ybx^mc&2*z4m6-taxh*n0j%$s7d8mbs'
 
-PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "moch-raydzan-inifootballshop.pbp.cs.ui.ac.id", "moch.raydzan-inifootballshop.pbp.cs.ui.ac.id"]
 CSRF_TRUSTED_ORIGINS = [
