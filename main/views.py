@@ -223,3 +223,53 @@ def show_json_by_id(request, id):
         "updated_at": (p.updated_at.isoformat() if getattr(p, "updated_at", None) else None),
     }
     return JsonResponse(data)
+
+@login_required(login_url='main:login')
+def show_json_user(request):
+    qs = Product.objects.select_related("user") \
+                        .filter(user=request.user) \
+                        .order_by("-id")
+    data = [{
+        "id": str(p.id),
+        "name": p.name,
+        "price": p.price,
+        "stock": p.stock,
+        "description": getattr(p, "description", None),
+        "category": getattr(p, "category", None),
+        "image_url": getattr(p, "image_url", "") or "",
+        "user": (p.user.username if getattr(p, "user_id", None) else None),
+        "created_at": (p.created_at.isoformat() if getattr(p, "created_at", None) else None),
+        "updated_at": (p.updated_at.isoformat() if getattr(p, "updated_at", None) else None),
+    } for p in qs]
+    return JsonResponse(data, safe=False)
+
+@csrf_exempt
+@login_required(login_url='main:login')
+def create_product_flutter(request):
+    if request.method != 'POST':
+        return JsonResponse({"status": False, "message": "Invalid method"}, status=400)
+
+    name = request.POST.get('name', '')
+    price = int(request.POST.get('price', '0') or 0)
+    stock = int(request.POST.get('stock', '0') or 0)
+    description = request.POST.get('description', '')
+    category = request.POST.get('category', '')
+    image_url = request.POST.get('image_url', '')
+    is_featured = request.POST.get('is_featured', 'false') == 'true'
+
+    p = Product.objects.create(
+        name=name,
+        price=price,
+        stock=stock,
+        description=description,
+        category=category,
+        image_url=image_url,
+        is_featured=is_featured,
+        user=request.user,
+    )
+
+    return JsonResponse({
+        "status": True,
+        "message": "Product created successfully.",
+        "id": str(p.id),
+    }, status=201)

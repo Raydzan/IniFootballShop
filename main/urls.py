@@ -3,6 +3,7 @@ from main.views import (show_main, create_product, show_product
                         , register, login_user, logout_user
                         , update_product, delete_product
                         , show_xml, show_json, show_xml_by_id, show_json_by_id
+                        , show_json_user, create_product_flutter,
                         )
 
 app_name = 'main'
@@ -25,5 +26,7 @@ urlpatterns = [
     path("json/", show_json, name="show_json"),
     path("xml/<uuid:id>/", show_xml_by_id, name="show_xml_by_id"),
     path("json/<uuid:id>/", show_json_by_id, name="show_json_by_id"),
+    path("json-user/", show_json_user, name="show_json_user"),
+    path("create-flutter/", create_product_flutter, name="create_product_flutter"),
 
 ]
